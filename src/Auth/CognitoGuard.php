@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\Session\Session;
 use PodPoint\LaravelCognitoAuth\CognitoClient;
+use PodPoint\LaravelCognitoAuth\Exceptions\NoLocalUserException;
 use Symfony\Component\HttpFoundation\Request;
 
 class CognitoGuard extends SessionGuard implements StatefulGuard
@@ -46,16 +47,12 @@ class CognitoGuard extends SessionGuard implements StatefulGuard
      */
     protected function hasValidCredentials($user, $credentials)
     {
-        if (is_null($user)) {
-            return false;
-        }
-
         $response = $this->client->authenticate($credentials['email'], $credentials['password']);
 
-        if ($response['ChallengeName'] == self::NEW_PASSWORD_CHALLENGE) {
-            // Deal with new password workflow ??
+        if ($response && is_null($user)) {
+            throw new NoLocalUserException();
         }
 
-        return true;
+        return (bool) $response;
     }
 }

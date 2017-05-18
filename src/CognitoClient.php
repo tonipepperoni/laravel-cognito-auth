@@ -88,13 +88,17 @@ class CognitoClient
             ]);
         } catch (CognitoIdentityProviderException $e) {
             if ($e->getAwsErrorCode() === 'UserNotConfirmedException') {
-                // Deal with unconfirmed user error
+                throw new UserNotConfirmedException();
             }
 
             return false;
         }
 
-        return $response;
+        if ($response['ChallengeName'] == self::NEW_PASSWORD_CHALLENGE) {
+            throw new PasswordResetRequiredException();
+        }
+
+        return (bool) $response['AuthenticationResult'];
     }
 
     /**
@@ -115,13 +119,17 @@ class CognitoClient
             ];
         }
 
-        $response = $this->client->signUp([
-            'ClientId' => $this->clientId,
-            'Password' => $credentials['password'],
-            'SecretHash' => $this->cognitoSecretHash($credentials['email']),
-            'UserAttributes' => $userAttributes,
-            'Username' => $credentials['email'],
-        ]);
+        try {
+            $response = $this->client->signUp([
+                'ClientId' => $this->clientId,
+                'Password' => $credentials['password'],
+                'SecretHash' => $this->cognitoSecretHash($credentials['email']),
+                'UserAttributes' => $userAttributes,
+                'Username' => $credentials['email'],
+            ]);
+        } catch (CognitoIdentityProviderException $e) {
+            return false;
+        }
 
         return (bool) $response['UserConfirmed'];
     }
