@@ -13,8 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 class CognitoGuard extends SessionGuard implements StatefulGuard
 {
-    const NEW_PASSWORD_CHALLENGE = 'NEW_PASSWORD_REQUIRED';
-
     /**
      * An instance of the Cognito client.
      *

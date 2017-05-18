@@ -4,6 +4,7 @@ namespace PodPoint\LaravelCognitoAuth\Auth;
 
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\AuthenticatesUsers as BaseAuthenticatesUsers;
+use PodPoint\LaravelCognitoAuth\Exceptions\NoLocalUserException;
 
 trait AuthenticatesUsers
 {
@@ -20,7 +21,7 @@ trait AuthenticatesUsers
         try {
             $response = $this->guard()->attempt($this->credentials($request), $request->has('remember'));
         } catch (NoLocalUserException $e) {
-            $this->createLocalUser($this->credentials($request));
+            $response = $this->createLocalUser($this->credentials($request));
         }
 
         return $response;
@@ -34,6 +35,6 @@ trait AuthenticatesUsers
      */
     protected function createLocalUser($credentials)
     {
-        //
+        return true;
     }
 }

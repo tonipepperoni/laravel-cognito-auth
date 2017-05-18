@@ -23,6 +23,13 @@ class CognitoClient
     const USER_CONFIRMED = 'user.confirmed';
 
     /**
+     * Constant representing the user needs a new password.
+     *
+     * @var string
+     */
+    const NEW_PASSWORD_CHALLENGE = 'NEW_PASSWORD_REQUIRED';
+
+    /**
      * AWS Cognito Client
      *
      * @var CognitoIdentityProviderClient
