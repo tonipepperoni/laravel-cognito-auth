@@ -7,6 +7,7 @@ use Illuminate\Foundation\Application;
 use PodPoint\LaravelCognitoAuth\Auth\CognitoGuard;
 use PodPoint\LaravelCognitoAuth\CognitoClient;
 use PodPoint\LaravelCognitoAuth\Passwords\CognitoPasswordBrokerManager;
+use Aws\CognitoIdentityProvider\CognitoIdentityProviderClient;
 
 class CognitoAuthServiceProvider extends ServiceProvider
 {
@@ -22,7 +23,13 @@ class CognitoAuthServiceProvider extends ServiceProvider
         ], 'config');
 
         $this->app->singleton(CognitoClient::class, function (Application $app) {
-            $awsCognitoIdentityProvider = $app->make('aws')->createCognitoIdentityProvider();
+            $config = [
+                'credentials' => config('cognito.credentials'),
+                'region' => config('cognito.region'),
+                'version' => config('cognito.version')
+            ];
+
+            $awsCognitoIdentityProvider = new CognitoIdentityProviderClient($config);
 
             return new CognitoClient($awsCognitoIdentityProvider, config('cognito.app_client_id'), config('cognito.app_client_secret'), config('cognito.user_pool_id'));
         });
