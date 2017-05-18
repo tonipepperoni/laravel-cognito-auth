@@ -75,6 +75,7 @@ class CognitoClient
 
     /**
      * Check user credentials
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminInitiateAuth.html
      *
      * @param  string $email
      * @param  string $password
@@ -101,15 +102,12 @@ class CognitoClient
             return false;
         }
 
-        if ($response['ChallengeName'] == self::NEW_PASSWORD_CHALLENGE) {
-            throw new PasswordResetRequiredException();
-        }
-
-        return (bool) $response['AuthenticationResult'];
+        return $response;
     }
 
     /**
      * Register a new user
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_SignUp.html
      *
      * @param  array  $credentials
      * @param  array  $attributes
@@ -143,6 +141,7 @@ class CognitoClient
 
     /**
      * Confirm a users email address
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ConfirmSignUp.html
      *
      * @param  string $confirmationCode
      * @param  string $username
@@ -166,6 +165,7 @@ class CognitoClient
 
     /**
      * Send a password reset link
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ForgotPassword.html
      *
      * @param  string $username
      * @return string
@@ -187,6 +187,7 @@ class CognitoClient
 
     /**
      * Reset a users password
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ConfirmForgotPassword.html
      *
      * @param  string $code
      * @param  string $username
@@ -219,6 +220,36 @@ class CognitoClient
     }
 
     /**
+     * Invite a user to sign up with a temporary password
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminCreateUser.html
+     *
+     * @param  string $email
+     * @return bool
+     */
+    public function inviteUser($email)
+    {
+        try {
+            $this->client->AdminCreateUser([
+                'UserPoolId' => $this->poolId,
+                'DesiredDeliveryMediums' => [
+                    'EMAIL'
+                ],
+                'Username' => $email,
+                'Attributes' => [
+                    [
+                        'Name' => 'email',
+                        'Value' => $email
+                    ]
+                ],
+            ]);
+        } catch (CognitoIdentityProviderException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Create Cognito secret hash
      *
      * @param  string $username
@@ -230,7 +261,7 @@ class CognitoClient
     }
 
     /**
-     * Create hash from string
+     * Create HMAC from string
      *
      * @param  string $message
      * @return string

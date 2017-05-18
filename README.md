@@ -1,4 +1,4 @@
-# Cognito Auth
+# Laravel Cognito Auth
 AWS Cognito Auth driver for Laravel
 
 ## Installation

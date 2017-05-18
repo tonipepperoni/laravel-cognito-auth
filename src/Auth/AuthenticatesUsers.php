@@ -5,6 +5,7 @@ namespace PodPoint\LaravelCognitoAuth\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\AuthenticatesUsers as BaseAuthenticatesUsers;
 use PodPoint\LaravelCognitoAuth\Exceptions\NoLocalUserException;
+use PodPoint\LaravelCognitoAuth\Exceptions\PasswordResetRequiredException;
 
 trait AuthenticatesUsers
 {
@@ -22,6 +23,9 @@ trait AuthenticatesUsers
             $response = $this->guard()->attempt($this->credentials($request), $request->has('remember'));
         } catch (NoLocalUserException $e) {
             $response = $this->createLocalUser($this->credentials($request));
+        } catch (PasswordResetRequiredException $e) {
+            session(['forceChangePassword' => true]);
+            return true;
         }
 
         return $response;
