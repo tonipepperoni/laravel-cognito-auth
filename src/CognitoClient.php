@@ -5,6 +5,7 @@ namespace PodPoint\LaravelCognitoAuth;
 use Aws\CognitoIdentityProvider\CognitoIdentityProviderClient;
 use Aws\CognitoIdentityProvider\Exception\CognitoIdentityProviderException;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class CognitoClient
 {
@@ -231,6 +232,7 @@ class CognitoClient
         try {
             $this->client->AdminCreateUser([
                 'UserPoolId' => $this->poolId,
+                'TemporaryPassword' => Str::random(40),
                 'DesiredDeliveryMediums' => [
                     'EMAIL'
                 ],
