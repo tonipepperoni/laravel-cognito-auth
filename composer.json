@@ -1,5 +1,5 @@
 {
-    "name": "pod-point/laravel-cognito-auth",
+    "name": "pod-point/cognito-auth",
     "description": "An authentication driver for Laravel",
     "keywords": ["php", "laravel", "auth", "aws", "cognito"],
     "type": "library",
