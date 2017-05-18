@@ -226,7 +226,7 @@ class CognitoClient
      * @param  string $email
      * @return bool
      */
-    public function inviteUser($email)
+    public function inviteUser($username)
     {
         try {
             $this->client->AdminCreateUser([
@@ -234,11 +234,11 @@ class CognitoClient
                 'DesiredDeliveryMediums' => [
                     'EMAIL'
                 ],
-                'Username' => $email,
+                'Username' => $username,
                 'Attributes' => [
                     [
                         'Name' => 'email',
-                        'Value' => $email
+                        'Value' => $username
                     ]
                 ],
             ]);
@@ -247,6 +247,33 @@ class CognitoClient
         }
 
         return true;
+    }
+
+    /**
+     * Set a new password for a user that has been flagged as needing a password change
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RespondToAuthChallenge.html
+     *
+     * @param  string $username
+     * @param  string $password
+     * @return bool
+     */
+    public function confirmPassword($username, $password)
+    {
+        try {
+            $this->client->RespondToAuthChallenge([
+                'ClientId' => $this->poolId,
+                'ChallengeResponses' => [
+                    'NEW_PASSWORD' => $password,
+                    'USERNAME' => $username,
+                    'SECRET_HASH' => $this->cognitoSecretHash($username)
+                ],
+                'ChallengeName' => 'NEW_PASSWORD_REQUIRED'
+            ]);
+        } catch (CognitoIdentityProviderException $e) {
+            return Password::INVALID_TOKEN;
+        }
+
+        return Password::PASSWORD_RESET;
     }
 
     /**

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Foundation\Auth\RedirectsUsers;
 use PodPoint\LaravelCognitoAuth\CognitoClient;
 
-trait ConfirmsUsers
+trait ConfirmsEmails
 {
     use RedirectsUsers;
 
@@ -20,9 +20,9 @@ trait ConfirmsUsers
      * @param  string|null  $code
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function showConfirmForm(Request $request, $code = null)
+    public function showConfirmEmailForm(Request $request, $code = null)
     {
-        return view('auth.confirm')->with(
+        return view('auth.confirm.email')->with(
             ['code' => $code, 'email' => $request->email]
         );
     }
@@ -33,15 +33,15 @@ trait ConfirmsUsers
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function confirm(Request $request)
+    public function confirmEmail(Request $request)
     {
-        $this->validate($request, $this->rules(), $this->validationErrorMessages());
+        $this->validate($request, $this->emailRules(), $this->validationErrorMessages());
 
         $response = app()->make(CognitoClient::class)->confirmRegistration($request->code, $request->email);
 
         return $response == CognitoClient::USER_CONFIRMED
-                    ? $this->sendResetResponse($response)
-                    : $this->sendResetFailedResponse($request, $response);
+                    ? $this->sendConfirmEmailResponse($response)
+                    : $this->sendConfirmEmailFailedResponse($request, $response);
     }
 
     /**
@@ -49,7 +49,7 @@ trait ConfirmsUsers
      *
      * @return array
      */
-    protected function rules()
+    protected function emailRules()
     {
         return [
             'code' => 'required',
@@ -73,7 +73,7 @@ trait ConfirmsUsers
      * @param  string  $response
      * @return \Illuminate\Http\RedirectResponse
      */
-    protected function sendResetResponse($response)
+    protected function sendConfirmEmailResponse($response)
     {
         return redirect($this->redirectPath())
                             ->with('status', trans($response));
@@ -86,7 +86,7 @@ trait ConfirmsUsers
      * @param  string  $response
      * @return \Illuminate\Http\RedirectResponse
      */
-    protected function sendResetFailedResponse(Request $request, $response)
+    protected function sendConfirmEmailFailedResponse(Request $request, $response)
     {
         return redirect()->back()
                     ->withInput($request->only('code'))
