@@ -21,7 +21,17 @@ trait ResetsPasswords
     {
         $this->validate($request, $this->rules(), $this->validationErrorMessages());
 
-        $response = app()->make(CognitoClient::class)->resetPassword($request->token, $request->email, $request->password);
+        $client = app()->make(CognitoClient::class);
+
+        $user = $client->getUser($request->email);
+
+        if ($user['UserStatus'] == CognitoClient::NEW_PASSWORD_CHALLENGE) {
+            $login = $client->authenticate($request->email, $request->token);
+
+            $response = $client->confirmPassword($request->email, $request->password, $login->get('Session'));
+        } else {
+            $response = $client->resetPassword($request->token, $request->email, $request->password);
+        }
 
         return $response == Password::PASSWORD_RESET
                     ? $this->sendResetResponse($response)

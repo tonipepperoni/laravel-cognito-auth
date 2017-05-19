@@ -37,7 +37,6 @@ AWS_COGNITO_USER_POOL_ID=
 You can either use the provided Laravel Auth style traits
 
 `PodPoint\LaravelCognitoAuth\Auth\AuthenticatesUsers`
-`PodPoint\LaravelCognitoAuth\Auth\ConfirmsUsers`
 `PodPoint\LaravelCognitoAuth\Auth\RegistersUsers`
 `PodPoint\LaravelCognitoAuth\Auth\ResetsPasswords`
 `PodPoint\LaravelCognitoAuth\Auth\SendsPasswordResetEmails`

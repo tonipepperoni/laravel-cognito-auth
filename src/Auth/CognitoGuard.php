@@ -9,7 +9,6 @@ use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\Session\Session;
 use PodPoint\LaravelCognitoAuth\CognitoClient;
 use PodPoint\LaravelCognitoAuth\Exceptions\NoLocalUserException;
-use PodPoint\LaravelCognitoAuth\Exceptions\PasswordResetRequiredException;
 use Symfony\Component\HttpFoundation\Request;
 
 class CognitoGuard extends SessionGuard implements StatefulGuard
@@ -47,12 +46,6 @@ class CognitoGuard extends SessionGuard implements StatefulGuard
     protected function hasValidCredentials($user, $credentials)
     {
         $response = $this->client->authenticate($credentials['email'], $credentials['password']);
-
-        if ($response['ChallengeName'] == CognitoClient::NEW_PASSWORD_CHALLENGE) {
-            $this->login($user);
-
-            throw new PasswordResetRequiredException();
-        }
 
         if ($response && is_null($user)) {
             $this->login($user);

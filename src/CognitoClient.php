@@ -237,7 +237,7 @@ class CognitoClient
                     'EMAIL'
                 ],
                 'Username' => $username,
-                'Attributes' => [
+                'UserAttributes' => [
                     [
                         'Name' => 'email',
                         'Value' => $username
@@ -253,17 +253,20 @@ class CognitoClient
 
     /**
      * Set a new password for a user that has been flagged as needing a password change
-     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RespondToAuthChallenge.html
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminRespondToAuthChallenge.html
      *
      * @param  string $username
      * @param  string $password
+     * @param  string $session
      * @return bool
      */
-    public function confirmPassword($username, $password)
+    public function confirmPassword($username, $password, $session)
     {
         try {
-            $this->client->RespondToAuthChallenge([
-                'ClientId' => $this->poolId,
+            $this->client->AdminRespondToAuthChallenge([
+                'ClientId' => $this->clientId,
+                'UserPoolId' => $this->poolId,
+                'Session'  => $session,
                 'ChallengeResponses' => [
                     'NEW_PASSWORD' => $password,
                     'USERNAME' => $username,
@@ -276,6 +279,27 @@ class CognitoClient
         }
 
         return Password::PASSWORD_RESET;
+    }
+
+    /**
+     * Get user details
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_GetUser.html
+     *
+     * @param  string $username
+     * @return mixed
+     */
+    public function getUser($username)
+    {
+        try {
+            $user = $this->client->AdminGetUser([
+                'Username' => $username,
+                'UserPoolId' => $this->poolId,
+            ]);
+        } catch (CognitoIdentityProviderException $e) {
+            return false;
+        }
+
+        return $user;
     }
 
     /**
