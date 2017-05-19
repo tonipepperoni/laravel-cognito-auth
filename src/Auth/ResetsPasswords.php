@@ -44,6 +44,7 @@ trait ResetsPasswords
      */
     private function forceNewPassword($request)
     {
+        $client = app()->make(CognitoClient::class);
         $login = $client->authenticate($request->email, $request->token);
 
         return $client->confirmPassword($request->email, $request->password, $login->get('Session'));
