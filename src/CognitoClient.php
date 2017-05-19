@@ -31,6 +31,13 @@ class CognitoClient
     const NEW_PASSWORD_CHALLENGE = 'NEW_PASSWORD_REQUIRED';
 
     /**
+     * Constant representing the force new password status.
+     *
+     * @var string
+     */
+    const FORCE_PASSWORD_STATUS = 'FORCE_CHANGE_PASSWORD';
+
+    /**
      * AWS Cognito Client
      *
      * @var CognitoIdentityProviderClient
@@ -221,14 +228,33 @@ class CognitoClient
     }
 
     /**
-     * Invite a user to sign up with a temporary password
+     * Register a user with a temporary password
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminCreateUser.html
      *
      * @param  string $email
+     * @param  array  $attributes
      * @return bool
      */
-    public function inviteUser($username)
+    public function inviteUser($username, array $attributes = [])
     {
+        $userAttributes = [
+            [
+                'Name' => 'email',
+                'Value' => $username
+            ],
+            [
+                'Name' => 'email_verified',
+                'Value' => 'true'
+            ]
+        ];
+
+        foreach ($attributes as $key => $value) {
+            $userAttributes[] = [
+                'Name' => $key,
+                'Value' => $value,
+            ];
+        }
+
         try {
             $this->client->AdminCreateUser([
                 'UserPoolId' => $this->poolId,
@@ -237,12 +263,7 @@ class CognitoClient
                     'EMAIL'
                 ],
                 'Username' => $username,
-                'UserAttributes' => [
-                    [
-                        'Name' => 'email',
-                        'Value' => $username
-                    ]
-                ],
+                'UserAttributes' => $userAttributes,
             ]);
         } catch (CognitoIdentityProviderException $e) {
             return false;
