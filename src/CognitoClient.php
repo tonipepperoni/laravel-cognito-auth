@@ -10,20 +10,6 @@ use Illuminate\Support\Str;
 class CognitoClient
 {
     /**
-     * Constant representing the confirm code is invalid.
-     *
-     * @var string
-     */
-    const INVALID_CODE = 'confirm.invalid';
-
-    /**
-     * Constant representing the user has been confirmed.
-     *
-     * @var string
-     */
-    const USER_CONFIRMED = 'user.confirmed';
-
-    /**
      * Constant representing the user needs a new password.
      *
      * @var string
@@ -82,7 +68,7 @@ class CognitoClient
     }
 
     /**
-     * Check user credentials
+     * Log a user in.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminInitiateAuth.html
      *
      * @param  string $email
@@ -103,10 +89,6 @@ class CognitoClient
                 'UserPoolId' => $this->poolId,
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            if ($e->getAwsErrorCode() === 'UserNotConfirmedException') {
-                throw new UserNotConfirmedException();
-            }
-
             return false;
         }
 
@@ -114,7 +96,7 @@ class CognitoClient
     }
 
     /**
-     * Register a new user
+     * Registers a new user and sets their email as verified.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_SignUp.html
      *
      * @param  array  $credentials
@@ -148,31 +130,7 @@ class CognitoClient
     }
 
     /**
-     * Confirm a users email address
-     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ConfirmSignUp.html
-     *
-     * @param  string $confirmationCode
-     * @param  string $username
-     * @return string
-     */
-    public function confirmRegistration($confirmationCode, $username)
-    {
-        try {
-            $response = $this->client->confirmSignUp([
-                'ClientId' => $this->clientId,
-                'ConfirmationCode' => $confirmationCode,
-                'SecretHash' => $this->cognitoSecretHash($username),
-                'Username' => $username,
-            ]);
-        } catch (CognitoIdentityProviderException $e) {
-            return self::INVALID_CODE;
-        }
-
-        return self::USER_CONFIRMED;
-    }
-
-    /**
-     * Send a password reset link
+     * Send a password reset link to a user.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ForgotPassword.html
      *
      * @param  string $username
@@ -194,7 +152,7 @@ class CognitoClient
     }
 
     /**
-     * Reset a users password
+     * Reset a users password based on sent token.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ConfirmForgotPassword.html
      *
      * @param  string $code
@@ -228,7 +186,7 @@ class CognitoClient
     }
 
     /**
-     * Register a user with a temporary password
+     * Register a user and send them an email to set their password.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminCreateUser.html
      *
      * @param  string $email
@@ -273,7 +231,7 @@ class CognitoClient
     }
 
     /**
-     * Set a new password for a user that has been flagged as needing a password change
+     * Set a new password for a user that has been flagged as needing a password change.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminRespondToAuthChallenge.html
      *
      * @param  string $username
@@ -303,7 +261,7 @@ class CognitoClient
     }
 
     /**
-     * Get user details
+     * Get user details.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_GetUser.html
      *
      * @param  string $username
