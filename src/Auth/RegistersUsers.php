@@ -22,7 +22,7 @@ trait RegistersUsers
     {
         $this->validator($request->all())->validate();
 
-        app()->make(CognitoClient::class)->register($request->only('email', 'password'), $request->only('email'));
+        app()->make(CognitoClient::class)->register($request->email, $request->password);
 
         event(new Registered($user = $this->create($request->all())));
 

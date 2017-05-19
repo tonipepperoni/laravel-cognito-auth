@@ -99,34 +99,53 @@ class CognitoClient
      * Registers a new user and sets their email as verified.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_SignUp.html
      *
-     * @param  array  $credentials
+     * @param  string $username
+     * @param  string $password
      * @param  array  $attributes
      * @return bool
      */
-    public function register($credentials, array $attributes = [])
+    public function register($username, $password, array $attributes = [])
     {
-        $userAttributes = [];
-
-        foreach ($attributes as $key => $value) {
-            $userAttributes[] = [
-                'Name' => $key,
-                'Value' => $value,
-            ];
-        }
+        $attributes['email'] = $username;
 
         try {
             $response = $this->client->signUp([
                 'ClientId' => $this->clientId,
-                'Password' => $credentials['password'],
-                'SecretHash' => $this->cognitoSecretHash($credentials['email']),
-                'UserAttributes' => $userAttributes,
-                'Username' => $credentials['email'],
+                'Password' => $password,
+                'SecretHash' => $this->cognitoSecretHash($username),
+                'UserAttributes' => $this->formatAttributes($attributes),
+                'Username' => $username,
             ]);
         } catch (CognitoIdentityProviderException $e) {
             return false;
         }
 
+        $this->setUserAttributes($username, ['email_verified' => 'true']);
+
         return (bool) $response['UserConfirmed'];
+    }
+
+    /**
+     * Set a users attributes.
+     * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminUpdateUserAttributes.html
+     *
+     * @param string $username
+     * @param array  $attributes
+     * @return bool
+     */
+    public function setUserAttributes($username, array $attributes)
+    {
+        try {
+            $this->client->AdminUpdateUserAttributes([
+                'Username' => $username,
+                'UserPoolId' => $this->poolId,
+                'UserAttributes' => $this->formatAttributes($attributes),
+            ]);
+        } catch (CognitoIdentityProviderException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -195,23 +214,8 @@ class CognitoClient
      */
     public function inviteUser($username, array $attributes = [])
     {
-        $userAttributes = [
-            [
-                'Name' => 'email',
-                'Value' => $username
-            ],
-            [
-                'Name' => 'email_verified',
-                'Value' => 'true'
-            ]
-        ];
-
-        foreach ($attributes as $key => $value) {
-            $userAttributes[] = [
-                'Name' => $key,
-                'Value' => $value,
-            ];
-        }
+        $attributes['email'] = $username;
+        $attributes['email_verified'] = 'true';
 
         try {
             $this->client->AdminCreateUser([
@@ -221,7 +225,7 @@ class CognitoClient
                     'EMAIL'
                 ],
                 'Username' => $username,
-                'UserAttributes' => $userAttributes,
+                'UserAttributes' => $this->formatAttributes($attributes),
             ]);
         } catch (CognitoIdentityProviderException $e) {
             return false;
@@ -308,5 +312,25 @@ class CognitoClient
         );
 
         return base64_encode($hash);
+    }
+
+    /**
+     * Format attributes in Name/Value array
+     *
+     * @param  array $attributes
+     * @return array
+     */
+    protected function formatAttributes(array $attributes)
+    {
+        $userAttributes = [];
+
+        foreach ($attributes as $key => $value) {
+            $userAttributes[] = [
+                'Name' => $key,
+                'Value' => $value,
+            ];
+        }
+
+        return $userAttributes;
     }
 }
