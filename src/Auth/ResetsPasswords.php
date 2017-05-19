@@ -26,9 +26,7 @@ trait ResetsPasswords
         $user = $client->getUser($request->email);
 
         if ($user['UserStatus'] == CognitoClient::FORCE_PASSWORD_STATUS) {
-            $login = $client->authenticate($request->email, $request->token);
-
-            $response = $client->confirmPassword($request->email, $request->password, $login->get('Session'));
+            $response = $this->forceNewPassword($request);
         } else {
             $response = $client->resetPassword($request->token, $request->email, $request->password);
         }
@@ -36,5 +34,18 @@ trait ResetsPasswords
         return $response == Password::PASSWORD_RESET
                     ? $this->sendResetResponse($response)
                     : $this->sendResetFailedResponse($request, $response);
+    }
+
+    /**
+     * If a user is being forced to set a new password for the first time follow that flow instead
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return string
+     */
+    private function forceNewPassword($request)
+    {
+        $login = $client->authenticate($request->email, $request->token);
+
+        return $client->confirmPassword($request->email, $request->password, $login->get('Session'));
     }
 }

@@ -42,6 +42,7 @@ class CognitoGuard extends SessionGuard implements StatefulGuard
      * @param  mixed  $user
      * @param  array  $credentials
      * @return bool
+     * @throws NoLocalUserException
      */
     protected function hasValidCredentials($user, $credentials)
     {

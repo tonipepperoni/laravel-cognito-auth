@@ -2,7 +2,7 @@
 
 namespace PodPoint\LaravelCognitoAuth;
 
-use Aws\CognitoIdentityProvider\CognitoIdentityProviderClient;
+use Aws\CognitoIdentityProvider\CognitoIdentityProviderClient as AWSCognitoClient;
 use Aws\CognitoIdentityProvider\Exception\CognitoIdentityProviderException;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -26,7 +26,7 @@ class CognitoClient
     /**
      * AWS Cognito Client
      *
-     * @var CognitoIdentityProviderClient
+     * @var AWSCognitoClient
      */
     protected $client;
 
@@ -54,12 +54,12 @@ class CognitoClient
     /**
      * CognitoClient Constructor
      *
-     * @param CognitoIdentityProviderClient $client
-     * @param string                        $clientId
-     * @param string                        $clientSecret
-     * @param string                        $poolId
+     * @param AWSCognitoClient $client
+     * @param string           $clientId
+     * @param string           $clientSecret
+     * @param string           $poolId
      */
-    public function __construct(CognitoIdentityProviderClient $client, $clientId, $clientSecret, $poolId)
+    public function __construct(AWSCognitoClient $client, $clientId, $clientSecret, $poolId)
     {
         $this->client = $client;
         $this->clientId = $clientId;
@@ -68,7 +68,7 @@ class CognitoClient
     }
 
     /**
-     * Log a user in.
+     * Check a users credentials.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminInitiateAuth.html
      *
      * @param  string $email
@@ -149,7 +149,7 @@ class CognitoClient
     }
 
     /**
-     * Send a password reset link to a user.
+     * Send a password reset code to a user.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ForgotPassword.html
      *
      * @param  string $username
@@ -171,7 +171,7 @@ class CognitoClient
     }
 
     /**
-     * Reset a users password based on sent token.
+     * Reset a users password based on reset code.
      * http://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ConfirmForgotPassword.html
      *
      * @param  string $code
