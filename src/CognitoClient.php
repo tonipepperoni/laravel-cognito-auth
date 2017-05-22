@@ -282,7 +282,7 @@ class CognitoClient
                 'UserAttributes' => $this->formatAttributes($attributes),
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            if ($e->getAwsErrorCode() === self::USERNAME_EXISTS || $e->getAwsErrorCode() === self::EXPIRED_CODE) {
+            if ($e->getAwsErrorCode() === self::USERNAME_EXISTS) {
                 return false;
             }
 
