@@ -24,6 +24,48 @@ class CognitoClient
     const FORCE_PASSWORD_STATUS = 'FORCE_CHANGE_PASSWORD';
 
     /**
+     * Constant representing the password reset required exception.
+     *
+     * @var string
+     */
+    const RESET_REQUIRED = 'PasswordResetRequiredException';
+
+    /**
+     * Constant representing the user not found exception.
+     *
+     * @var string
+     */
+    const USER_NOT_FOUND = 'UserNotFoundException';
+
+    /**
+     * Constant representing the username exists exception.
+     *
+     * @var string
+     */
+    const USERNAME_EXISTS = 'UsernameExistsException';
+
+    /**
+     * Constant representing the invalid password exception.
+     *
+     * @var string
+     */
+    const INVALID_PASSWORD = 'InvalidPasswordException';
+
+    /**
+     * Constant representing the code mismatch exception.
+     *
+     * @var string
+     */
+    const CODE_MISMATCH = 'CodeMismatchException';
+
+    /**
+     * Constant representing the expired code exception.
+     *
+     * @var string
+     */
+    const EXPIRED_CODE = 'ExpiredCodeException';
+
+    /**
      * AWS Cognito Client
      *
      * @var AWSCognitoClient
@@ -89,7 +131,11 @@ class CognitoClient
                 'UserPoolId' => $this->poolId,
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            return false;
+            if ($e->getAwsErrorCode() === self::RESET_REQUIRED || $e->getAwsErrorCode() === self::USER_NOT_FOUND) {
+                return false;
+            }
+
+            throw $e;
         }
 
         return $response;
@@ -117,7 +163,11 @@ class CognitoClient
                 'Username' => $username,
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            return false;
+            if ($e->getAwsErrorCode() === self::USERNAME_EXISTS) {
+                return false;
+            }
+
+            throw $e;
         }
 
         $this->setUserAttributes($username, ['email_verified' => 'true']);
@@ -135,15 +185,11 @@ class CognitoClient
      */
     public function setUserAttributes($username, array $attributes)
     {
-        try {
-            $this->client->AdminUpdateUserAttributes([
-                'Username' => $username,
-                'UserPoolId' => $this->poolId,
-                'UserAttributes' => $this->formatAttributes($attributes),
-            ]);
-        } catch (CognitoIdentityProviderException $e) {
-            return false;
-        }
+        $this->client->AdminUpdateUserAttributes([
+            'Username' => $username,
+            'UserPoolId' => $this->poolId,
+            'UserAttributes' => $this->formatAttributes($attributes),
+        ]);
 
         return true;
     }
@@ -164,7 +210,11 @@ class CognitoClient
                 'Username' => $username,
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            return Password::INVALID_USER;
+            if ($e->getAwsErrorCode() === self::USER_NOT_FOUND) {
+                return Password::INVALID_USER;
+            }
+
+            throw $e;
         }
 
         return Password::RESET_LINK_SENT;
@@ -190,15 +240,19 @@ class CognitoClient
                 'Username' => $username,
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            if ($e->getAwsErrorCode() === 'UserNotFoundException') {
+            if ($e->getAwsErrorCode() === self::USER_NOT_FOUND) {
                 return Password::INVALID_USER;
             }
 
-            if ($e->getAwsErrorCode() === 'InvalidPasswordException') {
+            if ($e->getAwsErrorCode() === self::INVALID_PASSWORD) {
                 return Password::INVALID_PASSWORD;
             }
 
-            return Password::INVALID_TOKEN;
+            if ($e->getAwsErrorCode() === self::CODE_MISMATCH || $e->getAwsErrorCode() === self::EXPIRED_CODE) {
+                return Password::INVALID_TOKEN;
+            }
+
+            throw $e;
         }
 
         return Password::PASSWORD_RESET;
@@ -228,7 +282,11 @@ class CognitoClient
                 'UserAttributes' => $this->formatAttributes($attributes),
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            return false;
+            if ($e->getAwsErrorCode() === self::USERNAME_EXISTS || $e->getAwsErrorCode() === self::EXPIRED_CODE) {
+                return false;
+            }
+
+            throw $e;
         }
 
         return true;
@@ -258,7 +316,11 @@ class CognitoClient
                 'ChallengeName' => 'NEW_PASSWORD_REQUIRED'
             ]);
         } catch (CognitoIdentityProviderException $e) {
-            return Password::INVALID_TOKEN;
+            if ($e->getAwsErrorCode() === self::CODE_MISMATCH || $e->getAwsErrorCode() === self::EXPIRED_CODE) {
+                return Password::INVALID_TOKEN;
+            }
+
+            throw $e;
         }
 
         return Password::PASSWORD_RESET;
