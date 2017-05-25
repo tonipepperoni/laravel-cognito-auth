@@ -14,7 +14,7 @@
         "mockery/mockery": "0.9.*",
         "phpunit/phpunit": "~5.7"
     },
-    "license": "proprietary",
+    "license": "MIT",
     "authors": [
         {
             "name": "Ben Speakman",

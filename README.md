@@ -3,7 +3,13 @@ AWS Cognito Auth driver for Laravel
 
 ## Installation
 
-Add the service provider in `config/app.php`:
+Add the following line to your `composer.json` file:
+
+```
+"pod-point/laravel-cognito-auth": "^0.1"
+```
+
+Then add the service provider in `config/app.php`:
 
 ```
 PodPoint\LaravelCognitoAuth\Providers\CognitoAuthServiceProvider::class
