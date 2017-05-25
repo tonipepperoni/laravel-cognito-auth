@@ -1,4 +1,7 @@
 # Laravel Cognito Auth
+
+[![Packagist](https://img.shields.io/packagist/v/Pod-Point/laravel-cognito-auth.svg)](https://packagist.org/packages/pod-point/laravel-cognito-auth)
+
 AWS Cognito Auth driver for Laravel
 
 ## Installation
