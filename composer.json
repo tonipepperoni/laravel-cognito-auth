@@ -5,9 +5,9 @@
     "type": "library",
     "require": {
         "php": ">=5.5.9",
-        "illuminate/config": "5.*",
-        "illuminate/support": "5.*",
-        "illuminate/auth": "5.*",
+        "illuminate/config": "6.*",
+        "illuminate/support": "6.*",
+        "illuminate/auth": "6.*",
         "aws/aws-sdk-php": "^3.27"
     },
     "require-dev": {
